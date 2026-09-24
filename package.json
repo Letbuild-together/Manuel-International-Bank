@@ -1,0 +1,19 @@
+{
+  "name": "manuel-international-bank",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace @manuel/web run dev",
+    "dev:api": "npm --workspace @manuel/api run start:dev",
+    "build": "npm --workspace @manuel/web run build && npm --workspace @manuel/api run build",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down -v",
+    "lint": "npm --workspace @manuel/web run lint && npm --workspace @manuel/api run lint"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  }
+}
