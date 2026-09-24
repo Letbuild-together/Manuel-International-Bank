@@ -1,45 +1,51 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { sign } from 'jsonwebtoken';
-
-@Injectable()
-export class AuthService {
-  constructor(private readonly configService: ConfigService) {}
-
-  login(email: string, password: string) {
-    if (email !== 'demo@manuelbank.com' || password !== 'P@ssword123') {
-      return null;
-    }
-
-    const payload = {
-      sub: 'demo-user-id',
-      email,
-      role: 'CUSTOMER'
-    };
-
-    const secret = this.configService.get<string>('JWT_SECRET', 'dev-secret');
-    const expiresIn = this.configService.get<number>('JWT_EXPIRES_IN', 3600);
-
-    return {
-      accessToken: sign(payload, secret, { expiresIn }),
-      user: {
-        id: 'demo-user-id',
-        email,
-        firstName: 'Demo',
-        lastName: 'Customer'
-      }
-    };
-  }
-
-  register(payload: { email: string; password: string; firstName: string; lastName: string }) {
-    return {
-      message: 'Registration request received',
-      user: {
-        id: 'generated-user-id',
-        email: payload.email,
-        firstName: payload.firstName,
-        lastName: payload.lastName
-      }
-    };
+{
+  "name": "@manuel/api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "node dist/main",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.3.10",
+    "@nestjs/config": "^3.1.0",
+    "@nestjs/core": "^10.3.10",
+    "@nestjs/jwt": "^10.4.0",
+    "@nestjs/passport": "^10.0.0",
+    "@nestjs/platform-express": "^10.3.10",
+    "@nestjs/swagger": "^8.0.0",
+    "@prisma/client": "^5.6.0",
+    "bcryptjs": "^2.4.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "jsonwebtoken": "^9.0.2",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.1.1",
+    "prisma": "^5.6.0",
+    "reflect-metadata": "^0.5.0",
+    "rxjs": "^7.6.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.3.3",
+    "@nestjs/schematics": "^10.3.3",
+    "@types/bcryptjs": "^2.4.1",
+    "@types/express": "^4.17.0",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.14.12",
+    "@types/passport-jwt": "^4.0.0",
+    "rimraf": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "tsconfig-paths": "^4.0.0",
+    "typescript": "^5.5.4"
   }
 }

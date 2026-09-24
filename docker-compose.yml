@@ -1,49 +1,29 @@
-version: "3.9"
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: manuel-bank-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: manuel_bank
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+:root {
+  --background: #f7f9fc;
+  --foreground: #0f172a;
+}
 
-  api:
-    build:
-      context: ./apps/api
-      dockerfile: Dockerfile
-    container_name: manuel-bank-api
-    depends_on:
-      - postgres
-    restart: unless-stopped
-    environment:
-      NODE_ENV: production
-      PORT: 3001
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/manuel_bank?schema=public
-      JWT_SECRET: change-me-in-production
-      JWT_EXPIRES_IN: 3600
-    ports:
-      - "3001:3001"
+html {
+  scroll-behavior: smooth;
+}
 
-  web:
-    build:
-      context: ./apps/web
-      dockerfile: Dockerfile
-    container_name: manuel-bank-web
-    depends_on:
-      - api
-    restart: unless-stopped
-    environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://localhost:3001
-    ports:
-      - "3000:3000"
+body {
+  background: linear-gradient(180deg, #f7fafc 0%, #eef8fe 100%);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
 
-volumes:
-  postgres_data:
+* {
+  box-sizing: border-box;
+}
+
+input,
+button,
+select,
+textarea {
+  font: inherit;
+}

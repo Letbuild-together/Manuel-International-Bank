@@ -1,37 +1,60 @@
-export default function RegisterPage() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-6 py-10">
-      <div className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-8 shadow-soft">
-        <p className="text-sm uppercase tracking-[0.2em] text-bank-600">Open an account</p>
-        <h1 className="mt-4 text-3xl font-bold text-slate-900">Start banking globally</h1>
+# Manuel International Bank
 
-        <form className="mt-8 grid gap-5 md:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">First name</label>
-            <input className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-bank-500 focus:bg-white" />
-          </div>
-          <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700">Last name</label>
-            <input className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-bank-500 focus:bg-white" />
-          </div>
-          <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-medium text-slate-700">Email address</label>
-            <input type="email" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-bank-500 focus:bg-white" />
-          </div>
-          <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-medium text-slate-700">Country</label>
-            <select className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-bank-500 focus:bg-white">
-              <option>United States</option>
-              <option>United Kingdom</option>
-              <option>United Arab Emirates</option>
-              <option>Singapore</option>
-            </select>
-          </div>
-          <button type="submit" className="md:col-span-2 w-full rounded-xl bg-bank-600 px-4 py-3 font-medium text-white transition hover:bg-bank-700">
-            Create profile
-          </button>
-        </form>
-      </div>
-    </main>
-  );
-}
+A production-oriented digital banking platform built with a Next.js frontend, NestJS backend, PostgreSQL, and Docker.
+
+## Features
+
+- Secure customer registration and login
+- JWT-based authentication with password hashing
+- Transaction and account management APIs
+- Customer portal with dashboard, account list, transfers, and statements
+- PostgreSQL + Prisma data model for users, accounts, and transactions
+- Docker Compose setup for local development
+
+## Stack
+
+- Frontend: Next.js 14, TypeScript, Tailwind
+- Backend: NestJS, Prisma, PostgreSQL
+- Database: PostgreSQL
+- Runtime: Docker Compose
+
+## Local Setup
+
+1. Install project dependencies:
+
+```bash
+npm install
+```
+
+2. Copy environment variables:
+
+```bash
+cp .env.example .env
+```
+
+3. Start database and application services:
+
+```bash
+docker compose up --build
+```
+
+4. For local app development:
+
+```bash
+npm run dev:web
+npm run dev:api
+```
+
+## Demo Credentials
+
+- Email: demo@manuelbank.com
+- Password: P@ssword123
+
+## API Endpoints
+
+- POST /api/auth/register
+- POST /api/auth/login
+- GET /api/auth/me
+- GET /api/accounts
+- GET /api/transactions
+- GET /api/users

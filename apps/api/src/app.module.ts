@@ -1,31 +1,30 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import configuration from './config/configuration';
-import { validate } from './config/env.validation';
-import { PrismaModule } from './prisma/prisma.module';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { AccountsModule } from './accounts/accounts.module';
-import { TransactionsModule } from './transactions/transactions.module';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { ResponseTransformInterceptor } from './common/interceptors/response.interceptor';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
-@Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: [configuration],
-      validate
-    }),
-    PrismaModule,
-    AuthModule,
-    UsersModule,
-    AccountsModule,
-    TransactionsModule
-  ],
-  controllers: [AppController],
-  providers: [AppService, ResponseTransformInterceptor, HttpExceptionFilter]
-})
-export class AppModule {}
+@Injectable()
+export class TransactionsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findAll() {
+    return this.prisma.transaction.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findByUser(userId: string) {
+    return this.prisma.transaction.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findOne(id: string) {
+    const transaction = await this.prisma.transaction.findUnique({ where: { id } });
+
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found.');
+    }
+
+    return transaction;
+  }
+}

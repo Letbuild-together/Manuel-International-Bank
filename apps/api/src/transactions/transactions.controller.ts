@@ -1,26 +1,19 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { TransactionsService } from './transactions.service';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AccountsService } from './accounts.service';
 
-@Controller('transactions')
-export class TransactionsController {
-  constructor(private readonly transactionsService: TransactionsService) {}
+@Controller('accounts')
+@UseGuards(JwtAuthGuard)
+export class AccountsController {
+  constructor(private readonly accountsService: AccountsService) {}
 
   @Get()
   findAll() {
-    return this.transactionsService.findAll();
+    return this.accountsService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.transactionsService.findOne(id);
-  }
-
-  @Post()
-  create(@Body() payload: Record<string, unknown>) {
-    return {
-      message: 'Transaction submitted for processing',
-      reference: 'TXN-' + Date.now(),
-      payload
-    };
+    return this.accountsService.findOne(id);
   }
 }

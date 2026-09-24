@@ -1,36 +1,53 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
-export class AccountsService {
-  findAll() {
-    return [
-      {
-        id: 'acc_001',
-        iban: 'MIBUS56USD123456789',
-        type: 'CHECKING',
-        balance: 42860.12,
-        currency: 'USD',
-        status: 'ACTIVE'
+export class UsersService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findAll() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        status: true,
+        kycStatus: true,
       },
-      {
-        id: 'acc_002',
-        iban: 'MIBUS56EUR987654321',
-        type: 'SAVINGS',
-        balance: 124200.4,
-        currency: 'EUR',
-        status: 'ACTIVE'
-      }
-    ];
+    });
   }
 
-  findOne(id: string) {
-    return {
-      id,
-      iban: 'MIBUS56USD123456789',
-      type: 'CHECKING',
-      balance: 42860.12,
-      currency: 'USD',
-      status: 'ACTIVE'
-    };
+  async getMe(user: any) {
+    const record = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      include: {
+        accounts: true,
+      },
+    });
+
+    if (!record) {
+      throw new NotFoundException('User not found.');
+    }
+
+    const { password, ...safeUser } = record;
+    return safeUser;
+  }
+
+  async findOne(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        accounts: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 }

@@ -1,32 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { UsersService } from './users.service';
 
-@Injectable()
-export class UsersService {
+@Controller('users')
+@UseGuards(JwtAuthGuard)
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Get()
   findAll() {
-    return [
-      { id: 'u_001', email: 'demo@manuelbank.com', firstName: 'Demo', lastName: 'Customer' },
-      { id: 'u_002', email: 'ops@manuelbank.com', firstName: 'Operations', lastName: 'Team' }
-    ];
+    return this.usersService.findAll();
   }
 
-  getMe() {
-    return {
-      id: 'u_001',
-      email: 'demo@manuelbank.com',
-      firstName: 'Demo',
-      lastName: 'Customer',
-      role: 'CUSTOMER',
-      kycStatus: 'VERIFIED'
-    };
+  @Get('me')
+  getMe(@Req() req: any) {
+    return this.usersService.getMe(req.user);
   }
 
-  findOne(id: string) {
-    return {
-      id,
-      email: 'demo@manuelbank.com',
-      firstName: 'Demo',
-      lastName: 'Customer',
-      role: 'CUSTOMER'
-    };
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.usersService.findOne(id);
   }
 }

@@ -1,25 +1,31 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
-import { AccountsService } from './accounts.service';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './config/configuration';
+import { validate } from './config/env.validation';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { AccountsModule } from './accounts/accounts.module';
+import { TransactionsModule } from './transactions/transactions.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { ResponseTransformInterceptor } from './common/interceptors/response.interceptor';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
-@Controller('accounts')
-export class AccountsController {
-  constructor(private readonly accountsService: AccountsService) {}
-
-  @Get()
-  findAll() {
-    return this.accountsService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.accountsService.findOne(id);
-  }
-
-  @Post()
-  create() {
-    return {
-      message: 'Account creation request accepted',
-      status: 'PENDING_VERIFICATION'
-    };
-  }
-}
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      validate,
+    }),
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    AccountsModule,
+    TransactionsModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService, ResponseTransformInterceptor, HttpExceptionFilter],
+})
+export class AppModule {}
