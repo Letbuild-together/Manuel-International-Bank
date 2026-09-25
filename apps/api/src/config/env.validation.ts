@@ -1,30 +1,13 @@
-import { plainToInstance } from 'class-transformer';
-import { IsNumber, IsString, validateSync } from 'class-validator';
+import { Module } from '@nestjs/common';
+import { PrismaModule } from '../prisma/prisma.module';
+import { AuditModule } from '../audit/audit.module';
+import { AdminController } from './admin.controller';
+import { AdminService } from './admin.service';
 
-class EnvironmentVariables {
-  @IsNumber()
-  PORT: number;
-
-  @IsString()
-  DATABASE_URL: string;
-
-  @IsString()
-  JWT_SECRET: string;
-
-  @IsNumber()
-  JWT_EXPIRES_IN: number;
-}
-
-export function validate(config: Record<string, unknown>) {
-  const validatedConfig = plainToInstance(EnvironmentVariables, config, {
-    enableImplicitConversion: true
-  });
-
-  const errors = validateSync(validatedConfig, { skipMissingProperties: false });
-
-  if (errors.length > 0) {
-    throw new Error(errors.toString());
-  }
-
-  return validatedConfig;
-}
+@Module({
+  imports: [PrismaModule, AuditModule],
+  controllers: [AdminController],
+  providers: [AdminService],
+  exports: [AdminService],
+})
+export class AdminModule {}

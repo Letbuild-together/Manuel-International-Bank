@@ -1,31 +1,36 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-  HttpStatus,
-  Injectable
-} from '@nestjs/common';
-import { Response } from 'express';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, MinLength } from 'class-validator';
 
-@Catch()
-@Injectable()
-export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
+export enum UserRoleDto {
+  CUSTOMER = 'CUSTOMER',
+  EMPLOYEE = 'EMPLOYEE',
+  ADMIN = 'ADMIN',
+  SUPPORT = 'SUPPORT',
+  COMPLIANCE = 'COMPLIANCE',
+  KYC_REVIEWER = 'KYC_REVIEWER',
+}
 
-    const status =
-      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+export class RegisterDto {
+  @IsNotEmpty()
+  firstName: string;
 
-    const message =
-      exception instanceof HttpException ? exception.getResponse() : 'Internal server error';
+  @IsNotEmpty()
+  lastName: string;
 
-    response.status(status).json({
-      success: false,
-      statusCode: status,
-      message,
-      timestamp: new Date().toISOString()
-    });
-  }
+  @IsEmail()
+  email: string;
+
+  @MinLength(8)
+  password: string;
+
+  @IsOptional()
+  @IsEnum(UserRoleDto)
+  role?: UserRoleDto;
+}
+
+export class LoginDto {
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty()
+  password: string;
 }

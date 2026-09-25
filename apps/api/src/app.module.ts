@@ -1,30 +1,35 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import helmet from 'helmet';
+import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { ResponseTransformInterceptor } from './common/interceptors/response.interceptor';
 
-@Injectable()
-export class TransactionsService {
-  constructor(private readonly prisma: PrismaService) {}
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  const port = Number(process.env.PORT ?? 3001);
 
-  async findAll() {
-    return this.prisma.transaction.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
-  }
+  app.enableCors({
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  });
 
-  async findByUser(userId: string) {
-    return this.prisma.transaction.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
+  app.use(helmet());
+  app.setGlobalPrefix('api');
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
+  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalInterceptors(new ResponseTransformInterceptor());
 
-  async findOne(id: string) {
-    const transaction = await this.prisma.transaction.findUnique({ where: { id } });
-
-    if (!transaction) {
-      throw new NotFoundException('Transaction not found.');
-    }
-
-    return transaction;
-  }
+  await app.listen(port);
+  console.log(`Manuel International Bank API is running on http://localhost:${port}`);
 }
+
+bootstrap();

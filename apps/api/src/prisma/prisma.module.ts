@@ -1,9 +1,16 @@
-import { Global, Module } from '@nestjs/common';
-import { PrismaService } from './prisma.service';
+import { Injectable, OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 
-@Global()
-@Module({
-  providers: [PrismaService],
-  exports: [PrismaService]
-})
-export class PrismaModule {}
+@Injectable()
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnApplicationShutdown
+{
+  async onModuleInit() {
+    await this.$connect();
+  }
+
+  async onApplicationShutdown() {
+    await this.$disconnect();
+  }
+}

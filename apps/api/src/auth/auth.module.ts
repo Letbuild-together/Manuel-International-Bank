@@ -1,33 +1,120 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, MinLength } from 'class-validator';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { compare, hash } from 'bcryptjs';
+import { PrismaService } from '../prisma/prisma.service';
+import { LoginDto, RegisterDto } from './auth.dto';
+import { AuditService } from '../audit/audit.service';
 
-export enum UserRoleDto {
-  CUSTOMER = 'CUSTOMER',
-  EMPLOYEE = 'EMPLOYEE',
-  ADMIN = 'ADMIN',
-}
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+    private readonly auditService: AuditService,
+  ) {}
 
-export class RegisterDto {
-  @IsNotEmpty()
-  firstName: string;
+  private sanitizeUser(user: any) {
+    const { password, ...safeUser } = user;
+    return safeUser;
+  }
 
-  @IsNotEmpty()
-  lastName: string;
+  private signToken(user: any) {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    };
 
-  @IsEmail()
-  email: string;
+    return {
+      accessToken: this.jwtService.sign(payload),
+    };
+  }
 
-  @MinLength(8)
-  password: string;
+  async register(registerDto: RegisterDto) {
+    const email = registerDto.email.trim().toLowerCase();
+    const existingUser = await this.prisma.user.findUnique({ where: { email } });
 
-  @IsOptional()
-  @IsEnum(UserRoleDto)
-  role?: UserRoleDto;
-}
+    if (existingUser) {
+      throw new ConflictException('An account with this email already exists.');
+    }
 
-export class LoginDto {
-  @IsEmail()
-  email: string;
+    const passwordHash = await hash(registerDto.password, 10);
 
-  @IsNotEmpty()
-  password: string;
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        firstName: registerDto.firstName.trim(),
+        lastName: registerDto.lastName.trim(),
+        password: passwordHash,
+        role: registerDto.role ?? 'CUSTOMER',
+        status: 'ACTIVE',
+        kycStatus: 'PENDING',
+      },
+    });
+
+    await this.auditService.log({
+      actorId: user.id,
+      action: 'USER_REGISTERED',
+      resourceType: 'USER',
+      resourceId: user.id,
+      details: { email },
+    });
+
+    const token = this.signToken(user);
+
+    return {
+      ...token,
+      user: this.sanitizeUser(user),
+    };
+  }
+
+  async login(loginDto: LoginDto) {
+    const email = loginDto.email.trim().toLowerCase();
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials.');
+    }
+
+    const isPasswordValid = await compare(loginDto.password, user.password);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials.');
+    }
+
+    const token = this.signToken(user);
+
+    await this.auditService.log({
+      actorId: user.id,
+      action: 'USER_LOGIN',
+      resourceType: 'AUTH',
+      resourceId: user.id,
+      details: { email },
+    });
+
+    return {
+      ...token,
+      user: this.sanitizeUser(user),
+    };
+  }
+
+  async getProfile(user: any) {
+    const dbUser = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      include: {
+        accounts: true,
+      },
+    });
+
+    if (!dbUser) {
+      throw new UnauthorizedException('User profile not found.');
+    }
+
+    return this.sanitizeUser(dbUser);
+  }
 }

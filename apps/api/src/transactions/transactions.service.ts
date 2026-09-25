@@ -1,30 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { TransactionsService } from './transactions.service';
 
-@Injectable()
-export class AccountsService {
-  constructor(private readonly prisma: PrismaService) {}
+@Controller('transactions')
+@UseGuards(JwtAuthGuard)
+export class TransactionsController {
+  constructor(private readonly transactionsService: TransactionsService) {}
 
-  async findAll() {
-    return this.prisma.account.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+  @Get()
+  @Roles('ADMIN', 'SUPPORT', 'COMPLIANCE', 'CUSTOMER')
+  findAll() {
+    return this.transactionsService.findAll();
   }
 
-  async findByUser(userId: string) {
-    return this.prisma.account.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
-  async findOne(id: string) {
-    const account = await this.prisma.account.findUnique({ where: { id } });
-
-    if (!account) {
-      throw new NotFoundException('Account not found.');
-    }
-
-    return account;
+  @Get(':id')
+  @Roles('ADMIN', 'SUPPORT', 'COMPLIANCE', 'CUSTOMER')
+  findOne(@Param('id') id: string) {
+    return this.transactionsService.findOne(id);
   }
 }
